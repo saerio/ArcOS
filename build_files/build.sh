@@ -9,16 +9,38 @@ set -ouex pipefail
 # List of rpmfusion packages can be found here:
 # https://mirrors.rpmfusion.org/mirrorlist?path=free/fedora/updates/43/x86_64/repoview/index.html&protocol=https&redirect=1
 
-# this installs a package from fedora repos
-dnf5 install -y tmux 
+# Install GNOME desktop
+dnf5 install -y \
+    "@gnome-desktop" \
+    gnome-session-wayland-session
 
-# Use a COPR Example:
-#
-# dnf5 -y copr enable ublue-os/staging
-# dnf5 -y install package
-# Disable COPRs so they don't end up enabled on the final image:
-# dnf5 -y copr disable ublue-os/staging
+# Set GNOME as default session
+systemctl set-default graphical.target
+systemctl enable gdm
+
+# Add Flathub remote
+flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+
+# Install GNOME apps from Flathub
+flatpak install -y flathub \
+    org.gnome.Lollypop \
+    org.gnome.Calculator \
+    org.gnome.Calendar \
+    org.gnome.clocks \
+    org.gnome.Contacts \
+    org.gnome.SimpleScan \
+    org.gnome.Evince \
+    org.gnome.Nautilus \
+    org.gnome.eog \
+    org.gnome.Maps \
+    org.gnome.gedit \
+    org.gnome.Weather \
+    org.gnome.Epiphany \
+    org.gnome.World.PikaBackup
+
+# Enable systemd-homed
+systemctl enable systemd-homed.service
+systemctl enable systemd-homed-activate.service
 
 #### Example for enabling a System Unit File
 
-systemctl enable podman.socket
