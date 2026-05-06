@@ -6,7 +6,7 @@ set -ouex pipefail
 
 dnf5 install -y meson gcc glib2-devel polkit-devel systemd-devel \
     gobject-introspection-devel gtk-doc git vala python3-dbusmock \
-    libxcrypt-devel gettext json-c-devel
+    libxcrypt-devel gettext json-c-devel dbus-devel
 
 git clone --depth 1 --branch 26.12.8 \
     https://gitlab.freedesktop.org/accountsservice/accountsservice.git /tmp/accountsservice-build
