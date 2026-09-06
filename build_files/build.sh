@@ -145,3 +145,19 @@ EOF
 ## mask this unit to avoid the failed-unit error on every boot.
 systemctl mask systemd-remount-fs.service
 
+### Software updates
+## GNOME Software shows Flatpak and firmware updates out of the box: the
+## flatpak and fwupd plugins are built into the gnome-software package (which
+## already Requires flatpak and fwupd), and the arcos-flatpaks first-boot
+## service configures the Flathub remote + installs the default apps. So those
+## updates appear in GNOME Software with no extra packages.
+##
+## bootc OS updates, however, have NO GNOME Software plugin upstream (the
+## gnome-software-rpm-ostree subpackage only applies to rpm-ostree systems,
+## not bootc). So OS updates can't be shown in GNOME Software. Instead, enable
+## bootc's own auto-update timer: it periodically fetches a new image and
+## stages it, applied on the next reboot. (Disable with
+## `systemctl disable bootc-fetch-apply-updates.timer` if you prefer manual
+## `bootc upgrade`.)
+systemctl enable bootc-fetch-apply-updates.timer
+
