@@ -109,19 +109,22 @@ InitialSetupEnable=true
 [debug]
 EOF
 
-### Default Flatpak applications (first-boot install)
+### Default Flatpak applications (installed on the live system)
 ## In a bootc/ostree image only /usr is committed to the deployment; /var is
 ## runtime state and is NOT carried over from the container image. Flatpaks
 ## installed at build time write to /var/lib/flatpak, so they are silently
 ## dropped on every bootc upgrade/switch and never appear on the booted
-## system. Instead, ship a first-boot systemd service that installs the
-## default apps into the host's persistent /var/lib/flatpak — so they appear
-## on both fresh installs and after bootc upgrades.
+## system. Instead, ship a systemd timer (arcos-flatpaks.timer) that runs a
+## one-shot installer into the host's persistent /var/lib/flatpak — so apps
+## appear on both fresh installs and after bootc upgrades. The installer is
+## idempotent (marker file) and retries until network is up, so it also works
+## when WiFi isn't connected at boot.
 dnf5 install -y flatpak
 
 install -Dm755 /ctx/arcos-install-flatpaks.sh /usr/sbin/arcos-install-flatpaks.sh
 install -Dm644 /ctx/arcos-flatpaks.service /usr/lib/systemd/system/arcos-flatpaks.service
-systemctl enable arcos-flatpaks.service
+install -Dm644 /ctx/arcos-flatpaks.timer /usr/lib/systemd/system/arcos-flatpaks.timer
+systemctl enable arcos-flatpaks.timer
 
 # Enable systemd-homed
 systemctl enable systemd-homed.service

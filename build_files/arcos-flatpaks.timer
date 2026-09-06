@@ -1,0 +1,16 @@
+[Unit]
+Description=Install/retry ArcOS default Flatpak applications
+Documentation=https://github.com/saerio/ArcOS
+
+[Timer]
+# First attempt shortly after boot, then retry periodically until the apps
+# are installed (the service self-disables its work via a marker file, so
+# later ticks are instant no-ops). This also recovers when network isn't
+# ready at boot (e.g. WiFi not yet connected) and picks up new apps after an
+# image upgrade.
+OnBootSec=1min
+OnUnitInactiveSec=30min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

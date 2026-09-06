@@ -1,18 +1,14 @@
 [Unit]
 Description=Install ArcOS default Flatpak applications
 Documentation=https://github.com/saerio/ArcOS
-# Needs network to reach Flathub.
-Wants=network-online.target
-After=network-online.target
-# Only run on bootc/ostree systems; skip inside plain containers.
-ConditionPathExists=/run/ostree-booted
+# Network readiness is handled by the script's own retry loop, so we do NOT
+# gate on network-online.target (it can be "reached" with no real connectivity,
+# which would block this unit forever on systems without auto-connecting
+# network). Triggered by arcos-flatpaks.timer.
 
 [Service]
 Type=oneshot
 ExecStart=/usr/sbin/arcos-install-flatpaks.sh
-RemainAfterExit=yes
-# A failed install (e.g. transient network issue) must not block boot.
+# The script always exits 0; retries are driven by the marker file + timer,
+# not by the service exit code, so this never shows as a failed unit.
 SuccessExitStatus=0
-
-[Install]
-WantedBy=multi-user.target
