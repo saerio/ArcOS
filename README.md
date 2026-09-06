@@ -89,7 +89,7 @@ For a base image, you can choose any of the Universal Blue images or start from 
 - Aurora: `ghcr.io/ublue-os/aurora:stable`
 - Bluefin: `ghcr.io/ublue-os/bluefin:stable`
 - Universal Blue Base: `ghcr.io/ublue-os/base-main:latest`
-- Fedora: `quay.io/fedora/fedora-bootc:42`
+- Fedora: `quay.io/fedora/fedora-bootc:44`
 
 You can find more Universal Blue images on the [packages page](https://github.com/orgs/ublue-os/packages).
 </details>

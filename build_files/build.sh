@@ -27,7 +27,7 @@ cp /ctx/arcos-oobe-vendor.conf /usr/share/gnome-initial-setup/vendor.conf
 # Packages can be installed from any enabled yum repo on the image.
 # RPMfusion repos are available by default in ublue main images
 # List of rpmfusion packages can be found here:
-# https://mirrors.rpmfusion.org/mirrorlist?path=free/fedora/updates/43/x86_64/repoview/index.html&protocol=https&redirect=1
+# https://mirrors.rpmfusion.org/mirrorlist?path=free/fedora/updates/44/x86_64/repoview/index.html&protocol=https&redirect=1
 
 # Install GNOME desktop
 dnf5 install -y \
