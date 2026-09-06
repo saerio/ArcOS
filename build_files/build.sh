@@ -125,7 +125,6 @@ flatpak install -y flathub \
     org.gnome.Maps \
     org.gnome.TextEditor \
     org.gnome.Weather \
-    org.gnome.Epiphany \
     app.zen_browser.zen \
     net.nokyan.Resources \
     org.gnome.World.PikaBackup
