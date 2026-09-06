@@ -29,11 +29,64 @@ cp /ctx/arcos-oobe-vendor.conf /usr/share/gnome-initial-setup/vendor.conf
 # List of rpmfusion packages can be found here:
 # https://mirrors.rpmfusion.org/mirrorlist?path=free/fedora/updates/44/x86_64/repoview/index.html&protocol=https&redirect=1
 
-# Install GNOME desktop
+### Locale support
+## The fedora-bootc base image is minimal and ships no locale data
+## (glibc-minimal-langpack). Without locale definitions installed, every
+## program that calls setlocale() fails with:
+##   "setlocale: cannot change locale (xx_XX.UTF-8): No such file or directory"
+## Install the full langpack set so whatever locale the user picks during
+## OOBE / GNOME Settings actually resolves. en_US.UTF-8 is kept as the
+## default fallback in /etc/locale.conf.
+dnf5 install -y glibc-all-langpacks
+
+cat > /etc/locale.conf << 'EOF'
+LANG=en_US.UTF-8
+EOF
+
+# Install GNOME desktop — the desktop shell + infrastructure, plus the few
+## GNOME apps we keep as RPMs (nautilus, gnome-software). All other GNOME
+## apps come from Flatpak (see below), so exclude them. Also drop the
+## terminal (ptyxis) and avahi (mDNS) which we don't want.
+##
+## Kept (desktop + infra): gnome-shell, gnome-session-wayland-session, gdm,
+##   gnome-control-center, gnome-settings-daemon, polkit, dconf,
+##   gnome-initial-setup, gvfs-* backends (also listed explicitly below),
+##   gnome-bluetooth, gnome-backgrounds, fonts, thumbnailers, librsvg2.
+## Kept (RPM apps): nautilus (Files), gnome-software.
+## Excluded (apps): gnome-text-editor, yelp, baobab, decibels, gnome-boxes,
+##   gnome-calculator, gnome-calendar, gnome-characters, gnome-clocks,
+##   gnome-connections, gnome-contacts, gnome-disk-utility, gnome-font-viewer,
+##   gnome-logs, gnome-maps, gnome-system-monitor, gnome-weather.
+## Excluded (other): ptyxis (terminal — not wanted), avahi (mDNS — not wanted).
 dnf5 install -y \
     "@gnome-desktop" \
     gnome-session-wayland-session \
-    gnome-initial-setup
+    gnome-initial-setup \
+    gvfs-afc gvfs-afp gvfs-archive gvfs-fuse gvfs-goa gvfs-gphoto2 gvfs-mtp gvfs-smb \
+    --exclude=ptyxis \
+    --exclude=avahi \
+    --exclude=gnome-text-editor \
+    --exclude=yelp \
+    --exclude=baobab \
+    --exclude=decibels \
+    --exclude=gnome-boxes \
+    --exclude=gnome-calculator \
+    --exclude=gnome-calendar \
+    --exclude=gnome-characters \
+    --exclude=gnome-clocks \
+    --exclude=gnome-connections \
+    --exclude=gnome-contacts \
+    --exclude=gnome-disk-utility \
+    --exclude=gnome-font-viewer \
+    --exclude=gnome-logs \
+    --exclude=gnome-maps \
+    --exclude=gnome-system-monitor \
+    --exclude=gnome-weather
+
+# Force-remove the terminal (ptyxis) in case the base image or a dependency
+# pulled it in despite the exclude above. Guarded so a "not installed" result
+# doesn't abort the build (errexit is on).
+dnf5 remove -y ptyxis || true
 
 # Set GNOME as default session
 systemctl set-default graphical.target
@@ -61,19 +114,20 @@ flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flat
 
 # Install GNOME apps from Flathub
 flatpak install -y flathub \
-    org.gnome.Lollypop \
+    org.gnome.Showtime \
     org.gnome.Calculator \
     org.gnome.Calendar \
     org.gnome.clocks \
     org.gnome.Contacts \
     org.gnome.SimpleScan \
     org.gnome.Evince \
-    org.gnome.Nautilus \
-    org.gnome.eog \
+    org.gnome.Loupe \
     org.gnome.Maps \
-    org.gnome.gedit \
+    org.gnome.TextEditor \
     org.gnome.Weather \
     org.gnome.Epiphany \
+    app.zen_browser.zen \
+    net.nokyan.Resources \
     org.gnome.World.PikaBackup
 
 # Enable systemd-homed
@@ -89,4 +143,12 @@ DefaultFileSystemType=btrfs
 EOF
 
 #### Example for enabling a System Unit File
+
+### Mask systemd-remount-fs.service
+## In a bootc image the root filesystem is a deployment managed by bootc
+## itself (mounted via the kernel command line), so there is no "/" entry in
+## /etc/fstab. systemd-remount-fs.service reads fstab and tries to remount the
+## root, finds nothing to remount, and fails. bootc owns the root mount, so
+## mask this unit to avoid the failed-unit error on every boot.
+systemctl mask systemd-remount-fs.service
 
