@@ -109,25 +109,19 @@ InitialSetupEnable=true
 [debug]
 EOF
 
-# Add Flathub remote
-flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+### Default Flatpak applications (first-boot install)
+## In a bootc/ostree image only /usr is committed to the deployment; /var is
+## runtime state and is NOT carried over from the container image. Flatpaks
+## installed at build time write to /var/lib/flatpak, so they are silently
+## dropped on every bootc upgrade/switch and never appear on the booted
+## system. Instead, ship a first-boot systemd service that installs the
+## default apps into the host's persistent /var/lib/flatpak — so they appear
+## on both fresh installs and after bootc upgrades.
+dnf5 install -y flatpak
 
-# Install GNOME apps from Flathub
-flatpak install -y flathub \
-    org.gnome.Showtime \
-    org.gnome.Calculator \
-    org.gnome.Calendar \
-    org.gnome.clocks \
-    org.gnome.Contacts \
-    org.gnome.SimpleScan \
-    org.gnome.Evince \
-    org.gnome.Loupe \
-    org.gnome.Maps \
-    org.gnome.TextEditor \
-    org.gnome.Weather \
-    app.zen_browser.zen \
-    net.nokyan.Resources \
-    org.gnome.World.PikaBackup
+install -Dm755 /ctx/arcos-install-flatpaks.sh /usr/sbin/arcos-install-flatpaks.sh
+install -Dm644 /ctx/arcos-flatpaks.service /usr/lib/systemd/system/arcos-flatpaks.service
+systemctl enable arcos-flatpaks.service
 
 # Enable systemd-homed
 systemctl enable systemd-homed.service

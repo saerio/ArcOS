@@ -1,0 +1,18 @@
+[Unit]
+Description=Install ArcOS default Flatpak applications
+Documentation=https://github.com/saerio/ArcOS
+# Needs network to reach Flathub.
+Wants=network-online.target
+After=network-online.target
+# Only run on bootc/ostree systems; skip inside plain containers.
+ConditionPathExists=/run/ostree-booted
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/arcos-install-flatpaks.sh
+RemainAfterExit=yes
+# A failed install (e.g. transient network issue) must not block boot.
+SuccessExitStatus=0
+
+[Install]
+WantedBy=multi-user.target
